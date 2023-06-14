@@ -22,7 +22,7 @@ file_names <- c("2020_passerine_BirdNET.csv",
                 "2022_passerine_BirdNET.csv")
 data_all <- tibble()
 for (file in file_names){
-  data <- read_csv(here("data", "processed", file))
+  data <- read_csv(here("data", "JPRF_2020_2021_2022_sound_processed", file))
   data_all <- bind_rows(data_all, data)
 }
 
@@ -49,7 +49,6 @@ species_recording <- data_all_0.85 %>%
 ###
 ### Recording validation
 ###
-
 # listen to the target recordings
 species <- 126 # range from 1 to 126
 for (info in 2:6) {
@@ -138,5 +137,45 @@ for (j in 1:nrow(data_validated_cleaned)){
 }
 
 
+###
+### Summarizing data by species (how many detections were received for each of the confidence range, 
+### how many ARUs out of 66 were getting that specific species?)
+###
+data_species <- data_all %>%
+  mutate(confidence_cat = cut(confidence, breaks = seq(from = 0.1, to = 1.0, by = 0.15))) %>%
+  group_nest(common_name) %>%
+  mutate(c_10_25 = map_dbl(.x = data, .f =~ .x %>% filter(confidence_cat == "(0.1,0.25]") %>% nrow()),
+         c_25_40 = map_dbl(.x = data, .f =~ .x %>% filter(confidence_cat == "(0.25,0.4]") %>% nrow()),
+         c_40_55 = map_dbl(.x = data, .f =~ .x %>% filter(confidence_cat == "(0.4,0.55]") %>% nrow()),
+         c_55_70 = map_dbl(.x = data, .f =~ .x %>% filter(confidence_cat == "(0.55,0.7]") %>% nrow()),
+         c_70_85 = map_dbl(.x = data, .f =~ .x %>% filter(confidence_cat == "(0.7,0.85]") %>% nrow()),
+         c_85_100 = map_dbl(.x = data, .f =~ .x %>% filter(confidence_cat == "(0.85,1]") %>% nrow()),
+         n_ARU = map_dbl(.x = data, .f =~ .x %>% pull(site) %>% n_distinct())) %>%
+  mutate(c_10_25_2020 = map_dbl(.x = data, .f =~ .x %>% filter(year == 2020) %>% filter(confidence_cat == "(0.1,0.25]") %>% nrow()),
+         c_25_40_2020 = map_dbl(.x = data, .f =~ .x %>% filter(year == 2020) %>% filter(confidence_cat == "(0.25,0.4]") %>% nrow()),
+         c_40_55_2020 = map_dbl(.x = data, .f =~ .x %>% filter(year == 2020) %>% filter(confidence_cat == "(0.4,0.55]") %>% nrow()),
+         c_55_70_2020 = map_dbl(.x = data, .f =~ .x %>% filter(year == 2020) %>% filter(confidence_cat == "(0.55,0.7]") %>% nrow()),
+         c_70_85_2020 = map_dbl(.x = data, .f =~ .x %>% filter(year == 2020) %>% filter(confidence_cat == "(0.7,0.85]") %>% nrow()),
+         c_85_100_2020 = map_dbl(.x = data, .f =~ .x %>% filter(year == 2020) %>% filter(confidence_cat == "(0.85,1]") %>% nrow()),
+         n_ARU_2020 = map_dbl(.x = data, .f =~ .x %>% filter(year == 2021) %>% pull(site) %>% n_distinct())) %>%
+  mutate(c_10_25_2021 = map_dbl(.x = data, .f =~ .x %>% filter(year == 2021) %>% filter(confidence_cat == "(0.1,0.25]") %>% nrow()),
+         c_25_40_2021 = map_dbl(.x = data, .f =~ .x %>% filter(year == 2021) %>% filter(confidence_cat == "(0.25,0.4]") %>% nrow()),
+         c_40_55_2021 = map_dbl(.x = data, .f =~ .x %>% filter(year == 2021) %>% filter(confidence_cat == "(0.4,0.55]") %>% nrow()),
+         c_55_70_2021 = map_dbl(.x = data, .f =~ .x %>% filter(year == 2021) %>% filter(confidence_cat == "(0.55,0.7]") %>% nrow()),
+         c_70_85_2021 = map_dbl(.x = data, .f =~ .x %>% filter(year == 2021) %>% filter(confidence_cat == "(0.7,0.85]") %>% nrow()),
+         c_85_100_2021 = map_dbl(.x = data, .f =~ .x %>% filter(year == 2021) %>% filter(confidence_cat == "(0.85,1]") %>% nrow()),
+         n_ARU_2021 = map_dbl(.x = data, .f =~ .x %>% filter(year == 2021) %>% pull(site) %>% n_distinct())) %>%
+  mutate(c_10_25_2022 = map_dbl(.x = data, .f =~ .x %>% filter(year == 2022) %>% filter(confidence_cat == "(0.1,0.25]") %>% nrow()),
+         c_25_40_2022 = map_dbl(.x = data, .f =~ .x %>% filter(year == 2022) %>% filter(confidence_cat == "(0.25,0.4]") %>% nrow()),
+         c_40_55_2022 = map_dbl(.x = data, .f =~ .x %>% filter(year == 2022) %>% filter(confidence_cat == "(0.4,0.55]") %>% nrow()),
+         c_55_70_2022 = map_dbl(.x = data, .f =~ .x %>% filter(year == 2022) %>% filter(confidence_cat == "(0.55,0.7]") %>% nrow()),
+         c_70_85_2022 = map_dbl(.x = data, .f =~ .x %>% filter(year == 2022) %>% filter(confidence_cat == "(0.7,0.85]") %>% nrow()),
+         c_85_100_2022 = map_dbl(.x = data, .f =~ .x %>% filter(year == 2022) %>% filter(confidence_cat == "(0.85,1]") %>% nrow()),
+         n_ARU_2022 = map_dbl(.x = data, .f =~ .x %>% filter(year == 2022) %>% pull(site) %>% n_distinct())) %>%
+  select(-data)
 
+data_validated <- read_csv(here("docs", "species_list_above_85_validation.csv"))
+
+data_species_all <- left_join(data_validated, data_species)
+write_csv(data_species_all, here("docs", "species_list_above_85_validation_info.csv"))
 
