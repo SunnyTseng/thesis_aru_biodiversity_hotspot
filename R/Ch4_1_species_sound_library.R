@@ -1,16 +1,16 @@
 ###
-### Name: JPRF ARU bird sound library
+### Name: Species comparison between eBird and ARU
 ### 
 ### Author: Sunny Tseng
-### Date: 2023-06-08
+### Date: 2023-06-21
 ###
 
+# library
 library(tidyverse)
 library(here)
+library(colortools)
 
-###
-### Species comparison between eBird and ARU (2023 Jun. 21) 
-###
+# data import
 data_ARU <- read_csv(here("data", "JPRF_species_list", "species_list_above_85_validation_info.csv"))
 data_eBird <- read_csv(here("data", "JPRF_species_list", "eBird_JPRF_info.csv"))
 
@@ -36,17 +36,27 @@ data_all <- full_join(data_ARU, data_eBird, by = c("common_name" = "species",
          ARU_only_p = ARU_only/(ARU_only + eBird_only + both),
          eBird_only_p = eBird_only/(ARU_only + eBird_only + both),
          both_p = both/(ARU_only + eBird_only + both)) %>%
-  mutate(order = fct_reorder(order, ARU_only_p)) %>%
+  arrange(ARU_p, ARU_only_p) %>%
+  mutate(order = as_factor(order)) %>%
   select(-data)
 
 
 order_figure <- data_all %>%
-  select(order, ARU_only_p, both_p, eBird_only_p) %>%
+  select(order, eBird_only_p, both_p, ARU_only_p) %>%
   pivot_longer(names_to = "method", cols = -order) %>%
   ggplot(aes(fill = method, y = value, x = order)) +
-    geom_bar(position = "fill", stat = "identity")
+    geom_bar(position = "fill", stat = "identity") +
+    coord_flip() + 
+    scale_y_reverse() +
+    scale_fill_manual(values = c("#A57CCD", "#CD7CA5", "#7CCD7C"))
   
 order_figure
+
+splitComp("palegreen3")
+analogous("plum3")
+
+
+
 
 
 
