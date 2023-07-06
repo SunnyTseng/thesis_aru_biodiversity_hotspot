@@ -30,7 +30,13 @@ for (file in file_names){
 
 # clean out the detection with confidence higher than 0.85, got 126 unique species
 data_all_0.85 <- data_all %>%
-  filter(confidence >= 0.85) 
+  filter(confidence >= 0.85) %>%
+  mutate(common_name = case_when(
+    common_name == "Audubon's Warbler" ~ "Yellow-rumped Warbler",
+    common_name == "Northwestern Crow" ~ "American Crow",
+    common_name == "Slate-colored Fox Sparrow" ~ "Fox Sparrow",
+    TRUE ~ common_name)) %>%
+  mutate(common_name = if_else(common_name == "American Yellow Warbler", "Yellow Warbler", common_name))
 
 # make a list of potential recordings based on individual species (126 species for validation)
 species_recording <- data_all_0.85 %>%
@@ -45,7 +51,7 @@ species_recording <- data_all_0.85 %>%
   select(-data)
 
 # save the list for further listening validation
-# write_csv(species_recording, here("Ch0_JPRF_library", "docs", "species_list_above_85.csv"))
+# write_csv(species_recording, here("data", "species_aru_85.csv"))
 
 ###
 ### listen to the target recordings
@@ -80,25 +86,21 @@ spec <- spectro(song, flim = c(0, 5), tlim = c(2, 3))
 ### 
 
 # Filter out the non-validated species and species (108) suggested by Ken that shouldn't be here (103)
-data_validated <- read_csv(here("data", "JPRF_species_list",  "species_list_above_85_validation.csv")) %>%
+data_validated <- read_csv(here("data", "JPRF_species_list",  "species_aru_85_validation.csv")) %>%
   drop_na(best) %>%
   filter(!common_name %in% c("Pygmy Nuthatch", 
                              "Red-naped Sapsucker", 
                              "Williamson's Sapsucker", 
                              "Bay-breasted Warbler", 
                              "Bushtit", 
-                             "Northwestern Crow", 
-                             "Slate-colored Fox Sparrow", 
-                             "Audubon's Warbler"))
+                             "Northwestern Crow", # there is American Crow on the list
+                             "Slate-colored Fox Sparrow",  # there is Fox Sparrow on the list
+                             "Audubon's Warbler")) %>% # there is yellow-rumped warbler on the list
+  mutate(common_name = if_else(common_name == "American Yellow Warbler", "Yellow Warbler", common_name)) # make the name fit the Cornell list
 
 clements_species <- read_csv(here("data", "JPRF_species_list", "Clements-Checklist-v2022-October-2022.csv"))
 
 data_species <- data_all_0.85 %>%
-  mutate(common_name = case_when(
-    common_name == "Audubon's Warbler" ~ "Yellow-rumped Warbler",
-    common_name == "Northwestern Crow" ~ "American Crow",
-    common_name == "Slate-colored Fox Sparrow" ~ "Fox Sparrow",
-    TRUE ~ common_name)) %>%
   mutate(confidence_cat = cut(confidence, breaks = seq(from = 0.1, to = 1.0, by = 0.15))) %>%
   group_nest(common_name) %>%
   mutate(c_10_25 = map_dbl(.x = data, .f =~ .x %>% filter(confidence_cat == "(0.1,0.25]") %>% nrow()),
@@ -133,15 +135,22 @@ data_species <- data_all_0.85 %>%
 
 
 data_validated_1 <- left_join(data_validated, data_species) %>%
-  mutate(common_name = case_when(
-    common_name == "American Yellow Warbler" ~ "Yellow Warbler",
-    TRUE ~ common_name)) %>%
   left_join(clements_species, by = c("common_name" = "English name")) %>%
   select(common_name, "scientific name", "order", "family", 14:41)
 
-
 # save the extended validation file
-# write_csv(here("data", "JPRF_species_list", "species_list_above_85_validation_info.csv")
+# write_csv(data_validation_1, here("data", "JPRF_species_list", "species_aru_85_validation_info.csv")
+
+
+###
+### Save the detection based files
+### 
+
+data_all_0.85_species <- data_all_0.85 %>%
+  filter(common_name %in% data_validated_1$common_name) %>%
+  select(year, month, day, site, recording, start_s, end_s, common_name)
+
+write_csv(data_all_0.85_species, here("data", "detection_aru_target_sp_85.csv"))
 
 
 ###

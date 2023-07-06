@@ -1,14 +1,20 @@
 ###
-### Name: Species comparison between eBird and ARU
+### Name: ARU application for JPRF avian community
 ### 
 ### Author: Sunny Tseng
 ### Date: 2023-06-21
+###
+
+###
+### Species comparison between eBird and ARU
 ###
 
 # library
 library(tidyverse)
 library(here)
 library(colortools)
+library(iNEXT)
+library(gridExtra)
 
 # data import
 data_ARU <- read_csv(here("data", "JPRF_species_list", "species_list_above_85_validation_info.csv"))
@@ -48,7 +54,8 @@ order_figure <- data_all %>%
     geom_bar(position = "fill", stat = "identity") +
     coord_flip() + 
     scale_y_reverse() +
-    scale_fill_manual(values = c("#A57CCD", "#CD7CA5", "#7CCD7C"))
+    scale_fill_manual(values = c("#A57CCD", "#CD7CA5", "#7CCD7C")) +
+    theme_light()
   
 order_figure
 
@@ -56,7 +63,9 @@ splitComp("palegreen3")
 analogous("plum3")
 
 
-
+###
+### Rarefraction curve for all sites 
+###
 
 
 
