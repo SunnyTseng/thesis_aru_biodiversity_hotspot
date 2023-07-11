@@ -56,29 +56,29 @@ species_recording <- data_all_0.85 %>%
 ###
 ### listen to the target recordings
 ###
-species <- 126 # range from 1 to 126 for 126 species
-
-for (info in 2:6) { # don't change this, it is for the column number
-  file <- species_recording[species, info] %>%
-    str_split(pattern = "_") %>%
-    unlist()
-  
-  dir <- paste0("E:/Audio/", str_sub(file[3], 1,4), "_passerine")
-  site <- paste0(file[1], "_", file[2])
-  recording <- paste0(file[3], "_", file[4])
-  start_s <- file[5] %>% as.numeric()
-  end_s <- file[6] %>% as.numeric()
-  song <- readWave(paste0(dir, "/", site, "/", recording, ".wav"), 
-                   from = (start_s - 2), 
-                   to = (end_s + 2), 
-                   units = "seconds")
-  
-  print(paste0("This is recording ", recording, " from ", start_s, " to ", end_s))
-  play(song, ... = "/play /close")
-}
-
-# plot out spectrum whenever needed
-spec <- spectro(song, flim = c(0, 5), tlim = c(2, 3))  
+# species <- 126 # range from 1 to 126 for 126 species
+# 
+# for (info in 2:6) { # don't change this, it is for the column number
+#   file <- species_recording[species, info] %>%
+#     str_split(pattern = "_") %>%
+#     unlist()
+#   
+#   dir <- paste0("E:/Audio/", str_sub(file[3], 1,4), "_passerine")
+#   site <- paste0(file[1], "_", file[2])
+#   recording <- paste0(file[3], "_", file[4])
+#   start_s <- file[5] %>% as.numeric()
+#   end_s <- file[6] %>% as.numeric()
+#   song <- readWave(paste0(dir, "/", site, "/", recording, ".wav"), 
+#                    from = (start_s - 2), 
+#                    to = (end_s + 2), 
+#                    units = "seconds")
+#   
+#   print(paste0("This is recording ", recording, " from ", start_s, " to ", end_s))
+#   play(song, ... = "/play /close")
+# }
+# 
+# # plot out spectrum whenever needed
+# spec <- spectro(song, flim = c(0, 5), tlim = c(2, 3))  
 
 
 ###
@@ -148,7 +148,8 @@ data_validated_1 <- left_join(data_validated, data_species) %>%
 
 data_all_0.85_species <- data_all_0.85 %>%
   filter(common_name %in% data_validated_1$common_name) %>%
-  select(year, month, day, site, recording, start_s, end_s, common_name)
+  left_join(clements_species, by = c("common_name" = "English name")) %>%
+  select(year, month, day, site, recording, start_s, end_s, common_name, order, family, "scientific name")
 
 write_csv(data_all_0.85_species, here("data", "detection_aru_target_sp_85.csv"))
 

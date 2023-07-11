@@ -63,10 +63,6 @@ splitComp("palegreen3")
 analogous("plum3")
 
 
-###
-### Rarefraction curve for all sites 
-###
-
 
 
 
