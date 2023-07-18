@@ -152,7 +152,6 @@ out <- iNEXT(site_level,          # The data frame
              conf=0.95,                   # The level of confidence intervals
              nboot=50)                    # The number of replications to perform - this generates your confidence interval - the bigger the number the longer the run time
 
-
 p1 <- ggiNEXT(out, type = 1, color.var = "Assemblage") + 
   theme_classic() +   #  type 1 = the diversity estimator
   labs(x = "ARU days", y = "Richness") +
@@ -161,10 +160,51 @@ p1 <- ggiNEXT(out, type = 1, color.var = "Assemblage") +
 
 
 
+###
+### Rarefaction curve by grouping (forest age, with ARU days)
+###
+inc_sites <- data_species %>%
+  left_join(data_site_group, by = c("site")) 
+
+site_all <- inc_sites %>%
+  group_by(group) %>%
+  summarize(detections_total = n_distinct(site, date))
+
+site_group <- inc_sites %>%
+  group_nest(group, common_name) %>%
+  mutate(n_days = map_dbl(.x = data, .f =~ .x %>% select(date, site) %>% n_distinct())) %>%
+  select(-data) %>%
+  group_nest(group) %>%
+  mutate(detections_named = map(.x = data, .f =~ setNames(.x$n_days, 
+                                                          .x$common_name) %>%
+                                  sort(decreasing = T)))
+
+site_level <- list()
+site_level[[1]] <- c(site_all %>% .[1, 2] %>% as.numeric(), 
+                     site_group$detections_named[[1]])
+site_level[[2]] <- c(site_all %>% .[2, 2] %>% as.numeric(), 
+                     site_group$detections_named[[2]])
+site_level[[3]] <- c(site_all %>% .[3, 2] %>% as.numeric(), 
+                     site_group$detections_named[[3]])
+names(site_level) <- site_group %>% pull(group)
 
 
+### iNEXT - survey sites
+out <- iNEXT(site_level,          # The data frame
+             q=0,                    # The type of diversity estimator (see discussion of the options below)
+             datatype="incidence_freq",   # The type of analysis
+             knots=40,                    # The number of data points in your line (more = smoother)
+             se=TRUE,                     # Logical statement if you want confidence intervals
+             conf=0.95,                   # The level of confidence intervals
+             nboot=50)                    # The number of replications to perform - this generates your confidence interval - the bigger the number the longer the run time
+
+p2 <- ggiNEXT(out, type = 1, color.var = "Assemblage") + 
+  theme_classic() +   #  type 1 = the diversity estimator
+  labs(x = "ARU days", y = "Richness") +
+  ggtitle("Forest age")
 
 
+p1 + p2
 
 
 
