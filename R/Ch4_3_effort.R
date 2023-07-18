@@ -11,6 +11,7 @@
 library(tidyverse)
 library(here)
 library(lubridate)
+library(ggh4x)
 
 ###
 ### Check ARU efforts
@@ -52,10 +53,40 @@ for (file in effort_list) {
 effort_all_1 <- effort_all %>%
   unite(col = date, year, month, day, remove = FALSE) %>%
   mutate(date = ymd(date)) %>%
-  filter(size >= 5760000 | size <= 5760500) %>% # remove the recordings when ARU is not functioning 
-  filter() # remove unreasonable dates, such as 1969... unreasonable months, such as Jan... 
-  group_nest(date, site)
+  mutate(month = as.numeric(month),
+         day = as.numeric(day),
+         hour = as.numeric(hour),
+         minute = as.numeric(minute)) %>%
+  filter(size >= 5760000 & size <= 5760500,
+         year >= 2020 & year <= 2022,
+         month >= 5 & month <= 7,
+         hour %in% c(4, 5, 6),
+         minute %in% seq(0, 60, by = 5)) 
 
+# write_csv(effort_all_1 %>% 
+#             group_nest(site, date) %>%
+#             select(site, date),
+#            here("data", "JPRF_aru_effort", "2020_2022_passerine_effort_filter.csv"))
+
+
+effort_break <- effort_all_1 %>%
+  group_by(year) %>%
+  summarize(start = min(date),
+            end = max(date))
+
+effort_all_2 <- effort_all_1 %>%
+  group_nest(date) %>%
+  mutate(ARUs = map_dbl(.x = data, .f =~ .x %>% pull(site) %>% n_distinct()),
+         year = map_dbl(.x = data, .f =~ .x %>% pull(year) %>% unique()),
+         yday = yday(date)) %>%
+  ggplot(aes(x = yday, y = ARUs)) +
+    geom_line() +
+    geom_point(shape = 15) +
+    # geom_bar(stat = "identity") +
+    facet_grid(rows = vars(year)) +
+    theme_bw()
+
+effort_all_2
 
 
 

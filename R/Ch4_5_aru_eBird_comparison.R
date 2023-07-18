@@ -17,8 +17,8 @@ library(iNEXT)
 library(gridExtra)
 
 # data import
-data_ARU <- read_csv(here("data", "JPRF_species_list", "species_list_above_85_validation_info.csv"))
-data_eBird <- read_csv(here("data", "JPRF_species_list", "eBird_JPRF_info.csv"))
+data_ARU <- read_csv(here("data", "JPRF_species_list", "species_aru_85_validation_info_1.csv"))
+data_eBird <- read_csv(here("data", "JPRF_species_list", "species_eBird_info.csv"))
 
 # basic comparison with numbers
 aru_only_species <- setdiff(data_ARU$common_name, data_eBird$species) # 31

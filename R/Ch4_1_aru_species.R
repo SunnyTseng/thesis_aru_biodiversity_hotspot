@@ -18,13 +18,13 @@ library(here)
 ###
 ### Detection list from 2020, 2021, and 2022 passerine
 ###
-file_names <- c("2020_passerine_BirdNET.csv", 
+file_names <- c("2020_passerine_BirdNET_updated.csv", 
                 "2021_passerine_BirdNET.csv",
                 "2022_passerine_BirdNET.csv")
 
 data_all <- tibble()
 for (file in file_names){
-  data <- read_csv(here("data", "JPRF_2020_2021_2022_sound_processed", file))
+  data <- read_csv(here("data", "processed", file))
   data_all <- bind_rows(data_all, data)
 }
 
@@ -35,6 +35,7 @@ data_all_0.85 <- data_all %>%
     common_name == "Audubon's Warbler" ~ "Yellow-rumped Warbler",
     common_name == "Northwestern Crow" ~ "American Crow",
     common_name == "Slate-colored Fox Sparrow" ~ "Fox Sparrow",
+    common_name == "Sooty Fox Sparrow" ~ "Fox Sparrow",
     TRUE ~ common_name)) %>%
   mutate(common_name = if_else(common_name == "American Yellow Warbler", "Yellow Warbler", common_name))
 
@@ -48,10 +49,10 @@ species_recording <- data_all_0.85 %>%
          recording_3 = map_chr(.x = data, .f =~ .x %>% pull(recording_u) %>% .[3]),
          recording_4 = map_chr(.x = data, .f =~ .x %>% pull(recording_u) %>% .[4]),
          recording_5 = map_chr(.x = data, .f =~ .x %>% pull(recording_u) %>% .[5])) %>%
-  select(-data)
+  select(-data) # it's 129 now because I removed the Fox Sparrow. 
 
 # save the list for further listening validation
-# write_csv(species_recording, here("data", "species_aru_85.csv"))
+# write_csv(species_recording, here("data", "species_aru_85_1.csv"))
 
 ###
 ### listen to the target recordings
@@ -86,17 +87,17 @@ species_recording <- data_all_0.85 %>%
 ### 
 
 # Filter out the non-validated species and species (108) suggested by Ken that shouldn't be here (103)
-data_validated <- read_csv(here("data", "JPRF_species_list",  "species_aru_85_validation.csv")) %>%
+data_validated <- read_csv(here("data", "JPRF_species_list",  "species_aru_85_validation_1.csv")) %>%
   drop_na(best) %>%
   filter(!common_name %in% c("Pygmy Nuthatch", 
                              "Red-naped Sapsucker", 
                              "Williamson's Sapsucker", 
                              "Bay-breasted Warbler", 
                              "Bushtit", 
-                             "Northwestern Crow", # there is American Crow on the list
-                             "Slate-colored Fox Sparrow",  # there is Fox Sparrow on the list
-                             "Audubon's Warbler")) %>% # there is yellow-rumped warbler on the list
-  mutate(common_name = if_else(common_name == "American Yellow Warbler", "Yellow Warbler", common_name)) # make the name fit the Cornell list
+                             "American Tree Sparrow",
+                             "Arctic Warbler",
+                             "Blue-headed Vireo",
+                             "Connecticut Warbler")) 
 
 clements_species <- read_csv(here("data", "JPRF_species_list", "Clements-Checklist-v2022-October-2022.csv"))
 
@@ -139,16 +140,25 @@ data_validated_1 <- left_join(data_validated, data_species) %>%
   select(common_name, "scientific name", "order", "family", 14:41)
 
 # save the extended validation file
-# write_csv(data_validation_1, here("data", "JPRF_species_list", "species_aru_85_validation_info.csv")
+# write_csv(data_validated_1, here("data", "JPRF_species_list", "species_aru_85_validation_info_1.csv"))
 
 
 ###
 ### Save the detection based files
 ### 
 
+# only keep the validated species
+# only keep the date/site (effort) that has been properly functional
 data_all_0.85_species <- data_all_0.85 %>%
   filter(common_name %in% data_validated_1$common_name) %>%
-  left_join(clements_species, by = c("common_name" = "English name")) %>%
+  left_join(clements_species, by = c("common_name" = "English name"))  %>%
+  mutate(month = as.numeric(month),
+         hour = str_sub(recording, start = 10, end = 11) %>% as.numeric(),
+         minute = str_sub(recording, start = 12, end = 13) %>% as.numeric()) %>%
+  filter(year >= 2020 & year <= 2022,
+         month >= 5 & month <= 7,
+         hour %in% c(4, 5, 6),
+         minute %in% seq(0, 60, by = 5)) %>%
   select(year, month, day, site, recording, start_s, end_s, common_name, order, family, "scientific name")
 
 write_csv(data_all_0.85_species, here("data", "detection_aru_target_sp_85.csv"))
