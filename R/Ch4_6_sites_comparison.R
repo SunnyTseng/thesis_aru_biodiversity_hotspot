@@ -18,10 +18,6 @@ library(graphics)
 library(stats)
 
 
-# set the number of decimals to be 2
-options(digits=2) 
-
-
 ### Import data
 data_species <- read_csv(here("data", "detection_aru_target_sp_85.csv")) %>%
   mutate(year = as.character(year)) %>%
@@ -40,13 +36,12 @@ data_site_ground <- read_csv(here("data", "JPRF_veg_ground_2022.csv")) %>%
   select(site, canopy_cover, shrub_height, starts_with("tree"))
   
 
-data_site_sub <- data_site_ground %>%
-  select(shrub_height)
+data_site_sub <- data_site_lidar %>%
+  select(chm_cat)
 
 ###
 ### Use the Age_binary info
 ###
-
 data_site_group <- data_site_lidar %>%
   mutate(group = chm_cat) %>%
   select(site, group)
@@ -71,7 +66,7 @@ groups <- kmeans(data_site_sub, centers = 3)  # since this is in brackets, the o
 # add the cluster no to justx
 groups
 str(groups) 
-data_site_group <- data_site_ground %>%
+data_site_group <- data_site_lidar %>%
   mutate(group = groups$cluster) %>%
   select(site, group)
 
@@ -117,39 +112,53 @@ out <- iNEXT(site_level,          # The data frame
 
 
 ###
-### Plots 
+### iNEXT - ARU days
 ###
-### canopy coverage, with ARU days
+### chm_chat, canopy height
 p_canopy_height <- ggiNEXT(out, type = 1, color.var = "Assemblage") + 
   theme_classic() +   #  type 1 = the diversity estimator
   labs(x = "ARU days", y = "Richness") +
   ggtitle("Canopy Height")
 
-### iNEXT - survey sites (forest age)
+### AGE_BIN, forest age
 p_forest_age <- ggiNEXT(out, type = 1, color.var = "Assemblage") + 
   theme_classic() +   #  type 1 = the diversity estimator
   labs(x = "ARU days", y = "Richness") +
   ggtitle("Forest Age")
 
-### iNEXT - survey sites (distance to water, #49 with kmeans)
+### distance to water, #49 with kmeans
 p_distance_water <- ggiNEXT(out, type = 1, color.var = "Assemblage") + 
   theme_classic() +   #  type 1 = the diversity estimator
   labs(x = "ARU days", y = "Richness") +
-  ggtitle("Distance to water")
+  ggtitle("Distance to Water")
 
-### iNEXT - survey sites (basal area, #35 with kmeans)
+### basal area, #35 with kmeans
 p_basal_area <- ggiNEXT(out, type = 1, color.var = "Assemblage") + 
   theme_classic() +   #  type 1 = the diversity estimator
   labs(x = "ARU days", y = "Richness") +
   ggtitle("Sum of Basal Area")
 
-### iNEXT - survey sites (shrub height, groupd measure with kmeans)
+### number of deciduous trees, #23 with kmeans
+p_deciduous_count <- ggiNEXT(out, type = 1, color.var = "Assemblage") + 
+  theme_classic() +   #  type 1 = the diversity estimator
+  labs(x = "ARU days", y = "Richness") +
+  ggtitle("Count of Deciduous Trees")
+
+
+### shrub height, groupd measure with kmeans
 p_shrub_height <- ggiNEXT(out, type = 1, color.var = "Assemblage") + 
   theme_classic() +   #  type 1 = the diversity estimator
   labs(x = "ARU days", y = "Richness") +
   ggtitle("Shrub Height")
 
 
+save(p_canopy_height, 
+     p_forest_age,
+     p_distance_water,
+     p_basal_area,
+     p_deciduous_count,
+     p_shrub_height,
+     here("R", "rarefaction_curves_figures.RData"))
 
 ###
 ### Hierarchical Cluster Analysis (Optional)

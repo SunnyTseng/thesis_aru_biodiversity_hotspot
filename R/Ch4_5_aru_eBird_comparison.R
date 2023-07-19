@@ -26,6 +26,15 @@ eBird_only_species <- setdiff(data_eBird$species, data_ARU$common_name) # 24, mo
 both_species <- intersect(data_eBird$species, data_ARU$common_name) # 69, these would be common species
 all_species <- union(data_eBird$species, data_ARU$common_name) # 124 species in JPRF wooow!
 
+# species list
+data_list <- full_join(data_ARU, data_eBird, by = c("common_name" = "species", "scientific name", "order", "family")) %>%
+  arrange(order, family, best) %>%
+  mutate(ARU = if_else(is.na(best), "N", "Y"),
+         eBird = if_else(is.na(Jan), "N", "Y")) %>%
+  select(common_name, `scientific name`, order, family, ARU, eBird)
+
+# write_csv(data_list, here("data", "JPRF_species_list", "species_combined.csv"))
+
 # comparison by orders
 data_all <- full_join(data_ARU, data_eBird, by = c("common_name" = "species", 
                                                    "scientific name", 
