@@ -88,31 +88,14 @@ analogous("plum3")
 ### ARU species detected in each of the sites
 ###
 
-species_ARU <- read_csv(here("data", "JPRF_species_list", "species_list_above_85_validation_info.csv")) %>%
-  pull(common_name)
-
-file_names <- c("2020_passerine_BirdNET.csv", 
-                "2021_passerine_BirdNET.csv",
-                "2022_passerine_BirdNET.csv")
-data_all <- tibble()
-for (file in file_names){
-  data <- read_csv(here("data", "JPRF_2020_2021_2022_sound_processed", file))
-  data_all <- bind_rows(data_all, data)
-}
+species_ARU <- read_csv(here("data", "detection_aru_target_sp_85.csv")) 
 
 # Clean out the detection with confidence higher than 0.85, got 126 unique species
-data_ARU_sites <- data_all %>%
-  filter(confidence >= 0.85) %>% # get right detections
-  mutate(common_name = case_when( # get the common name correct
-    common_name == "American Yellow Warbler" ~ "Yellow Warbler",
-    common_name == "Audubon's Warbler" ~ "Yellow-rumped Warbler",
-    common_name == "Northwestern Crow" ~ "American Crow",
-    common_name == "Slate-colored Fox Sparrow" ~ "Fox Sparrow",
-    TRUE ~ common_name))  %>%
-  filter(common_name %in% species_ARU) %>% # only keep the species of interest
+data_ARU_sites <- species_ARU  %>% # only keep the species of interest
   group_nest(site) %>%
   mutate(richness = map_dbl(.x = data, .f =~ .x %>% pull(common_name) %>% n_distinct()),
-         ARU_day = map_dbl(.x = data, .f =~ .x %>% distinct(year, month, day) %>% nrow()))
+         ARU_day = map_dbl(.x = data, .f =~ .x %>% distinct(year, month, day) %>% nrow())) %>%
+  select(-data)
 
 
   
