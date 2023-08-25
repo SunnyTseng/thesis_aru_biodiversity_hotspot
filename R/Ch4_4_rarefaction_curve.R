@@ -44,10 +44,13 @@ out <- iNEXT(project_level,          # The data frame
              nboot=50)                    # The number of replications to perform - this generates your confidence interval - the bigger the number the longer the run time
 
 
-p1 <- ggiNEXT(out, type=1, color.var = "Order.q") + 
+p1 <- ggiNEXT(out, type=1,  grey = TRUE) + 
   theme_classic() +   #  type 1 = the diversity estimator
-  labs(x = "Survey sites", y = "Richness") +
-  theme(legend.position = "none")
+  labs(x = "ARUs", y = "Richness") +
+  theme(legend.position = "none",
+        axis.text = element_text(size = 15, face = "bold"),
+        axis.title = element_text(size = 25, face = "bold"),
+        axis.line = element_line(linewidth = 2))
 
 
 ### Data wrangling to the iNEXT format - survey period
@@ -71,12 +74,16 @@ out <- iNEXT(project_level,          # The data frame
              nboot=50)                    # The number of replications to perform - this generates your confidence interval - the bigger the number the longer the run time
 
 
-p2 <- ggiNEXT(out, type=1, color.var = "Order.q") + 
+p2 <- ggiNEXT(out, type=1, grey = TRUE) + 
   theme_classic() +   #  type 1 = the diversity estimator
   labs(x = "ARU days", y = "Richness") +
-  theme(legend.position = "none")
+  theme(legend.position = "none",
+        axis.text = element_text(size = 15, face = "bold"),
+        axis.title = element_text(size = 25, face = "bold"),
+        axis.line = element_line(linewidth = 2))
 
+p2
 
-p1 + p2 
+p1 / p2 
 
 

@@ -31,7 +31,7 @@ data_list <- full_join(data_ARU, data_eBird, by = c("common_name" = "species", "
   arrange(order, family, best) %>%
   mutate(ARU = if_else(is.na(best), "N", "Y"),
          eBird = if_else(is.na(Jan), "N", "Y")) %>%
-  select(common_name, `scientific name`, order, family, ARU, eBird)
+  select(common_name, `scientific name`, order, family, ARU, c_85_100, eBird)
 
 # write_csv(data_list, here("data", "JPRF_species_list", "species_combined.csv"))
 

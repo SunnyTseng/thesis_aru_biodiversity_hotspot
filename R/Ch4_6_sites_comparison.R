@@ -24,13 +24,13 @@ data_species <- read_csv(here("data", "detection_aru_target_sp_85.csv")) %>%
   unite(date, year, month, day) %>%
   mutate(date = ymd(date)) 
 
-data_site_lidar <- read_csv(here("data", "JPRF_veg_Lidar_2015_250.csv")) %>%
+data_site_lidar <- read_csv(here("data", "JPRF_site_veg", "JPRF_veg_Lidar_2015_250.csv")) %>%
   mutate(Site = if_else(str_detect(Site, pattern = "N"), 
                         paste0(str_sub(Site, start = 1, end = 1), "_", str_sub(Site, start = 2, end = 3)), 
                         Site)) %>%
   rename("site" = "Site")
 
-data_site_ground <- read_csv(here("data", "JPRF_veg_ground_2022.csv")) %>%
+data_site_ground <- read_csv(here("data", "JPRF_site_veg", "JPRF_veg_ground_2022.csv")) %>%
   mutate(canopy_cover = rowMeans(select(., starts_with("canopy"))),
          shrub_height = rowSums(select(., starts_with("shrub")))) %>% 
   select(site, canopy_cover, shrub_height, starts_with("tree"))
@@ -121,10 +121,18 @@ p_canopy_height <- ggiNEXT(out, type = 1, color.var = "Assemblage") +
   ggtitle("Canopy Height")
 
 ### AGE_BIN, forest age
-p_forest_age <- ggiNEXT(out, type = 1, color.var = "Assemblage") + 
+p_forest_age <- ggiNEXT(out, type = 1) + 
   theme_classic() +   #  type 1 = the diversity estimator
   labs(x = "ARU days", y = "Richness") +
   ggtitle("Forest Age")
+
+p_forest_age <- ggiNEXT(out, type=1) + 
+  theme_classic() +   #  type 1 = the diversity estimator
+  labs(x = "ARU days", y = "Richness") +
+  theme(legend.position = "none",
+        axis.text = element_text(size = 15, face = "bold"),
+        axis.title = element_text(size = 20, face = "bold"),
+        axis.line = element_line(linewidth = 2))
 
 ### distance to water, #49 with kmeans
 p_distance_water <- ggiNEXT(out, type = 1, color.var = "Assemblage") + 
