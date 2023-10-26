@@ -63,10 +63,25 @@ order_figure <- data_all %>%
     geom_bar(position = "fill", stat = "identity") +
     coord_flip() + 
     scale_y_reverse() +
-    scale_fill_manual(values = c("#A57CCD", "#CD7CA5", "#7CCD7C")) +
-    theme_light()
+    scale_fill_manual(values = c("#A57CCD", "#CD7CA5", "#7CCD7C"),
+                      labels = c("ARU only", "ARU and eBird", "eBird only")) +
+  theme_light() +
+    labs(x = "Order", y = "Proportion", fill = "Detected by") +
+  theme(axis.title = element_text(size = 16),
+        axis.text = element_text(size = 12),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.position = "bottom", 
+        axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 0)),
+        axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 0, l = 0)))
+
   
-order_figure
+ggsave(plot = order_figure,
+       filename = here("docs", "figures", "order_figure.png"),
+       height = 12,
+       width = 24,
+       units = "cm",
+       dpi = 300)
 
 splitComp("palegreen3")
 analogous("plum3")

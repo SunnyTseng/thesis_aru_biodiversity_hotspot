@@ -81,12 +81,26 @@ effort_all_2 <- effort_all_1 %>%
          yday = yday(date)) %>%
   ggplot(aes(x = yday, y = ARUs)) +
     geom_line() +
-    geom_point(shape = 15) +
+    geom_point(shape = 16, alpha = 0.5) +
     # geom_bar(stat = "identity") +
     facet_grid(rows = vars(year)) +
-    theme_bw()
+    theme_bw() +
+    labs(x = "Day of a year", y = "# of ARU") +
+  scale_y_continuous(breaks = c(10, 40)) +
+  theme(axis.title = element_text(size = 16),
+        axis.text = element_text(size = 12),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.position = c(0.8, 0.2), 
+        axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 0)),
+        axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 0, l = 0)))
 
-effort_all_2
+ggsave(plot = effort_all_2,
+       filename = here("docs", "figures", "effort_all_2.png"),
+       height = 10,
+       width = 20,
+       units = "cm",
+       dpi = 300)
 
 
 

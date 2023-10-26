@@ -84,6 +84,12 @@ p2 <- ggiNEXT(out, type=1, grey = TRUE) +
 
 p2
 
-p1 / p2 
+patch <- p1 + p2 
 
+ggsave(plot = patch,
+       filename = here("docs", "figures", "patch.png"),
+       height = 15,
+       width = 30,
+       units = "cm",
+       dpi = 300)
 
