@@ -36,8 +36,8 @@ data_all_0.85 <- data_all %>%
     common_name == "Northwestern Crow" ~ "American Crow",
     common_name == "Slate-colored Fox Sparrow" ~ "Fox Sparrow",
     common_name == "Sooty Fox Sparrow" ~ "Fox Sparrow",
-    TRUE ~ common_name)) %>%
-  mutate(common_name = if_else(common_name == "American Yellow Warbler", "Yellow Warbler", common_name))
+    common_name == "American Yellow Warbler" ~ "Yellow Warbler",
+    TRUE ~ common_name)) 
 
 # make a list of potential recordings based on individual species (126 species for validation)
 species_recording <- data_all_0.85 %>%
